@@ -46,7 +46,16 @@ class ApiClient {
     const data = await response.json();
 
     if (!response.ok) {
-      const error = new Error(data.detail || 'Something went wrong');
+      if (response.status === 401) {
+        this.clearToken();
+      }
+      let errorMsg = 'An error occurred. Please try again.';
+      if (typeof data?.detail === 'string') {
+        errorMsg = data.detail;
+      } else if (Array.isArray(data?.detail) && data.detail.length > 0) {
+        errorMsg = data.detail.map((d) => d.msg || 'Invalid input').join('; ');
+      }
+      const error = new Error(errorMsg);
       error.status = response.status;
       throw error;
     }

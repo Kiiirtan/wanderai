@@ -185,9 +185,8 @@ Make recommendations realistic, specific (use real place names), and tailored to
             itinerary = json.loads(text)
             return itinerary
 
-        except Exception as e:
-            print(f"Gemini API error: {e}")
-            # Fall back to mock data on error
+        except Exception:
+            # Fall back to curated data on error without leaking key or sensitive internals
             return self._generate_mock_itinerary(trip_data)
 
     async def regenerate_day(self, trip_data: dict, day_number: int, feedback: str = "") -> dict:

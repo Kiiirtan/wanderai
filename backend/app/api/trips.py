@@ -15,31 +15,32 @@ from app.services.gemini_service import gemini_service
 router = APIRouter(prefix="/api/trips", tags=["trips"])
 
 
-# --- Pydantic Schemas ---
+# --- Pydantic Schemas with Strict Input Validation ---
+from pydantic import Field
 
 class TripCreateRequest(BaseModel):
-    destination: str
-    start_date: str
-    end_date: str
-    num_travelers: int = 1
-    travel_style: str = "balanced"
-    budget_level: str = "moderate"
-    budget_amount: Optional[float] = None
-    currency: str = "USD"
-    interests: list[str] = []
-    accommodation_type: str = "hotel"
-    transportation_mode: str = "mixed"
-    special_requirements: Optional[str] = None
+    destination: str = Field(..., min_length=2, max_length=100)
+    start_date: str = Field(..., pattern=r"^\d{4}-\d{2}-\d{2}$")
+    end_date: str = Field(..., pattern=r"^\d{4}-\d{2}-\d{2}$")
+    num_travelers: int = Field(1, ge=1, le=50)
+    travel_style: str = Field("balanced", max_length=50)
+    budget_level: str = Field("moderate", max_length=50)
+    budget_amount: Optional[float] = Field(None, ge=0, le=10_000_000)
+    currency: str = Field("USD", min_length=3, max_length=3)
+    interests: list[str] = Field(default_factory=list, max_items=20)
+    accommodation_type: str = Field("hotel", max_length=50)
+    transportation_mode: str = Field("mixed", max_length=50)
+    special_requirements: Optional[str] = Field(None, max_length=500)
 
 
 class TripUpdateRequest(BaseModel):
-    title: Optional[str] = None
-    status: Optional[str] = None
-    cover_image: Optional[str] = None
+    title: Optional[str] = Field(None, min_length=1, max_length=200)
+    status: Optional[str] = Field(None, pattern=r"^(draft|generated|saved|archived)$")
+    cover_image: Optional[str] = Field(None, max_length=500)
 
 
 class RegenerateDayRequest(BaseModel):
-    feedback: str = ""
+    feedback: str = Field("", max_length=500)
 
 
 class ActivitySchema(BaseModel):
